@@ -8,7 +8,7 @@ float yy=284;
 
 Cover cover;
 
-String score="0123404043342";
+String score="012340432";
 int index;
 float[]xx=new float[8];    
 boolean hasInstruction=false;
@@ -35,7 +35,7 @@ void Teaching_setup() {
   
   bells=new Bell[8];    
   for (int i=0; i<8; i++) {
-    bells[i]=new Bell("chime"+(i+1)+".png", new SoundFile(this,""+(i+1)+".mp3"), xx[i], yy-1);
+    bells[i]=new Bell(i,"chime"+(i+1)+".png", new SoundFile(this,""+(i+1)+".mp3"), xx[i], yy-1);
   }
 
   cover=new Cover();
@@ -44,16 +44,17 @@ void Teaching_setup() {
 }
 
 float getXpos() {
-  int ii=int(score.charAt(index))-48;  
-  ii=constrain(ii, 0, 7);
-
-  index++;
+  //index++;
   if (index==score.length()) {
     //index=0;
     hasInstruction=false;
     state=0;
     msg.trigger();
+    return int(score.charAt(index-1))-48;
   }
+  
+  int ii=int(score.charAt(index))-48;  
+  ii=constrain(ii, 0, 7);
   return xx[ii];
 }
 
@@ -82,9 +83,6 @@ void Teaching_mode() {
   if(state==1){
 
   if (hasInstruction) {
-    if (frameCount%73==0) {
-      cover.update(getXpos(), yy+60, 140);
-    }
     image(cover.getCover(), 0, 0);
   }
   }
@@ -122,7 +120,8 @@ void Teaching_Key_input() {
 
 class Bell {
 
-  PImage pic;    
+  PImage pic;
+  int id;
   //Minim.AudioSample clip;   
   SoundFile soundFile;
 
@@ -138,11 +137,12 @@ class Bell {
   
   boolean handInZone = false;
 
-  Bell(String picName, SoundFile soundFile, float xx, float yy) {  //constructor
+  Bell(int id,String picName, SoundFile soundFile, float xx, float yy) {  //constructor
     pic=loadImage(picName);
     this.soundFile = soundFile;
     xpos=xx;
     ypos=yy;
+    this.id = id;
   }
 
   void update() {
@@ -172,6 +172,21 @@ class Bell {
       swing=true;
     }
     soundFile.play();    //trigger sound
+    
+    
+  if(state==1){
+
+  if (hasInstruction) {
+    if (score.charAt(index)-48==id) {
+        index++;
+        msg.timer2=0;
+        cover.update(getXpos(), yy+60, 140);
+      } else {
+        msg.wrongInput();
+      }
+    }
+  }
+    
   }
 
   boolean mouseOn() {    //if mouse in on the bell
@@ -277,7 +292,9 @@ class Button{
 
 class Msg{
   String txt="Congratulations!";
+  String txt2="Wrong!";
   int timer=0;
+  public int timer2=0;
   
   Msg(){
   }
@@ -286,8 +303,13 @@ class Msg{
     timer=180;
   }
   
+  void wrongInput(){
+    timer2=20;
+  }
+  
   void update(){
     timer--;
+    timer2--;
     if(timer>0){
       pushStyle();
       textAlign(CENTER,CENTER);
@@ -295,8 +317,19 @@ class Msg{
       fill(0,255,0);
       text(txt,width/2,height/2);
       popStyle();
+    } else {
+      if(timer2>0){
+      pushStyle();
+      textAlign(CENTER,CENTER);
+      textSize(48);
+      fill(#E83D3D);
+      text(txt2,width/2,height/2);
+      popStyle();
+      }
     }
+    
   }
+  
 }
 
 public void leapMotionContral_Teaching(){
